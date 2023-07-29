@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @Controller
 public class EmployeeController {
 
@@ -46,6 +48,22 @@ public class EmployeeController {
         employeeservice.ajouter(employee);
 
         return "redirect:/home";
+
+    }
+
+    @GetMapping("/modifier/{id}")
+    public String modifier(@PathVariable("id") Long id, Model model){
+        Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
+
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            model.addAttribute("employee",employee);
+            return "main/modifier";
+        } else {
+            return "redirect:home";
+        }
+
+
 
     }
 
