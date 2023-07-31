@@ -45,8 +45,11 @@ public class EmployeeController {
         employee.setEmail(employeeDTO.getEmail());
         employee.setSalaire(employeeDTO.getSalaire());
 
-        employeeservice.ajouter(employee);
+        if (employeeRepository.existsEmployeeByNameAndAndPrenom(employee.getName(),employee.getPrenom())){
+            return "redirect:/home";
+        }
 
+        employeeservice.ajouter(employee);
         return "redirect:/home";
 
     }
@@ -84,6 +87,12 @@ public class EmployeeController {
         } else {
             return "redirect:/home";
         }
+    }
+
+    @GetMapping("/supp/{id}")
+    public String Getsupp(@PathVariable("id") Long id) {
+        employeeservice.supp(id);
+        return "redirect:/home";
     }
 
 

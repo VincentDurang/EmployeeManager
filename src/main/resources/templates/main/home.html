@@ -39,7 +39,8 @@
             <td th:text="${employee.email}">Email</td>
             <td th:text="${employee.num}">Num</td>
             <td th:text="${employee.salaire}">Salaire</td>
-            <td><a th:href="@{/modifier/{id}(id=${employee.id})}" class="btn btn-success">Modifier</a></td>
+            <td><a th:href="@{/modifier/{id}(id=${employee.id})}" class="btn btn-success">Modifier</a>
+                <a th:href="@{/supp/{id}(id=${employee.id})}" class="btn btn-danger">Supprimer</a></td>
         </tr>
     </th:block>
 
