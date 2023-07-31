@@ -22,4 +22,8 @@ public class EmployeeService {
        return this.employeeRepository.findById(id.toString());
     }
 
+    public void modifier( Employee employee){
+            employeeRepository.save(employee);
+    }
+
 }

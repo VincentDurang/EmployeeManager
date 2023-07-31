@@ -52,7 +52,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/modifier/{id}")
-    public String modifier(@PathVariable("id") Long id, Model model){
+    public String GetModifier(@PathVariable("id") Long id, Model model){
         Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
 
         if (employeeOptional.isPresent()) {
@@ -63,8 +63,27 @@ public class EmployeeController {
             return "redirect:home";
         }
 
+    }
 
+    @PostMapping("/modifier/{id}")
+    public String modifier(@PathVariable("id") Long id, @ModelAttribute EmployeeDTO employeeDTO) {
+        Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
 
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            employee.setName(employeeDTO.getNom());
+            employee.setPrenom(employeeDTO.getPrenom());
+            employee.setPoste(employeeDTO.getPoste());
+            employee.setNum(employeeDTO.getNum());
+            employee.setSalaire(employeeDTO.getSalaire());
+
+            employeeservice.modifier(employee);
+
+            return "redirect:/home";
+
+        } else {
+            return "redirect:/home";
+        }
     }
 
 
