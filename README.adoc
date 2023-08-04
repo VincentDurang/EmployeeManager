@@ -57,7 +57,7 @@ Dépendances sélectionnées :
 
 Après avoir terminé la configuration et initialisé l'application, je lance celle-ci avec Intellij IDEA. Je vérifie que l'application se lance correctement et que les dépendances sont bien implémentées. Ensuite, je lance mon environnement local (ici, Laragon). Facultativement, je crée un contrôleur de test pour vérifier que le port et la session sont bien configurés.
 
-1. Configuration de la base de données
+=== Configuration de la base de données
 
 Avant de configurer la base de données dans l'application, il faut la créer au préalable. Pour cela, j'utilise MySQL.
 
@@ -143,7 +143,7 @@ spring.servlet.multipart.maxFileSize=100MB
 spring.servlet.multipart.maxRequestSize=100MB
 ----
 
-2. Configuration des modules
+=== Configuration des modules
 
 Je crée les packages controller, dto, entity, repository et service. Dans chaque package, je vais créer les modules correspondants.
 
@@ -261,13 +261,11 @@ public class EmployeeService {
 }
 ----
 
-3- Rajout de l'option pour ajouter un employé
+=== Rajout de l'option pour ajouter un employé
 
 Après avoir créé les modules nécessaires, nous pouvons maintenant implémenter la fonctionnalité d'ajout d'un employé. Pour cela, nous allons ajouter deux nouvelles méthodes : une avec GetMapping pour afficher la page de formulaire et une avec PostMapping pour traiter l'ajout des données saisies.
 
-
 Avant de procéder à cela, nous allons d'abord créer une méthode dans le contrôleur EmployeeController pour diriger vers la vue d'accueil :
-
 
 [source,java]
 ----
@@ -277,7 +275,7 @@ return "main/home";
     }
 ----
 
-PNous utiliserons Bootstrap pour styliser les pages et créerons deux fichiers : fragments pour l'en-tête et le pied de page, et main pour les pages principales. Dans fragments, nous ajouterons une barre de navigation qui sera utilisée sur toutes les pages. Ensuite, nous créerons home.html (qui n'est pas encore utile pour le moment) et ajouter.html.
+Nous utiliserons Bootstrap pour styliser les pages et créerons deux fichiers : fragments pour l'en-tête et le pied de page, et main pour les pages principales. Dans fragments, nous ajouterons une barre de navigation qui sera utilisée sur toutes les pages. Ensuite, nous créerons home.html (qui n'est pas encore utile pour le moment) et ajouter.html.
 
 Dans ajouter.html, nous allons créer un formulaire pour ajouter un nouvel employé :
 
@@ -324,6 +322,8 @@ Dans ajouter.html, nous allons créer un formulaire pour ajouter un nouvel emplo
 ----
 
 Nous avons également ajouté les autres valeurs (prénom, salaire, etc.) à l'entité Employee :
+Faire attention lors de la génération d'id (il est important de choisir la bonne stratégie, dans notre ces strategy = GenerationType.IDENTITY)
+Erreur : Bien choisir la strategy de generation d'id avant la création de la base de donnée, si vous la changer en cours de route il va avoir un conflit entre l'app et la base de données (dans certains cas on peut la changer manuellement.)
 
 [source,java]
 ----
@@ -389,11 +389,210 @@ Le `GetMapping` redirigera l'utilisateur vers notre formulaire.
     }
 ----
 
-Le `PostMapping` traitera les données du formulaire. N'oubliez pas d'inclure cette ligne dans `ajouter.html` :
+Le `PostMapping` traitera les données du formulaire. N'oubliez pas d'inclure cette ligne (dans le form) dans `ajouter.html` :
 
-[source,java]
+[source,html]
 ----
 <form action="#" th:action="@{/ajouter}" method="POST" enctype="multipart/form-data">
 ----
 
 N'oubliez pas d'inclure enctype="multipart/form-data" dans notre cas et assurez-vous de ne pas vous tromper dans l'action.
+
+Faite des tests pour vérifier le bon fonctionnement, s'il y a des erreurs regarder les anciennes étapes, et faire attention aux fautes de frappes.
+Nous pouvons ajouter de nouveaux employés.
+
+=== Rajout de l'option pour voir les employés.
+
+Pour afficher les employés de la base de données sur la page d'accueil (`home`), nous devons effectuer quelques modifications. Nous ajouterons la liste des employés à l'attribut du modèle (`model`) en utilisant la méthode `findAll()` du repository `employeeRepository`. Ensuite, nous utiliserons cette liste dans le fichier HTML `home.html` en utilisant les fonctionnalités de Thymeleaf pour effectuer une boucle et afficher les informations de chaque employé.
+
+Voici les modifications à apporter dans le contrôleur `EmployeeController` :
+
+
+[source,java]
+----
+@GetMapping("/home")
+    public String getHome(Model model) {
+        model.addAttribute("employees", employeeRepository.findAll());
+        return "main/home";
+
+    }
+----
+
+Le `employeeRepository.findAll()` récupérera tous les employés et les stockera dans l'attribut `employees` du modèle. Maintenant, nous allons effectuer les modifications dans le fichier `home.html` . Nous utiliserons la variable `employees` du modèle pour itérer sur la liste et afficher les informations de chaque employé dans un tableau.
+
+Voici le tableau dans home.html :
+
+[source,html]
+----
+<table class="table">
+    <thead>
+    <tr class="table-dark">
+
+        <th scope="col">Nom</th>
+        <th scope="col">Prénom</th>
+        <th scope="col">Poste</th>
+        <th scope="col">Email</th>
+        <th scope="col">Num</th>
+        <th scope="col">Salaire</th>
+
+    </tr>
+    </thead>
+
+    <tbody>
+    <th:block th:each="employee : ${employees}">
+        <tr class="table-bordered">
+            <td th:text="${employee.name}">Nom</td>
+            <td th:text="${employee.prenom}">Prenom</td>
+            <td th:text="${employee.poste}">Poste</td>
+            <td th:text="${employee.email}">Email</td>
+            <td th:text="${employee.num}">Num</td>
+            <td th:text="${employee.salaire}">Salaire</td>
+        </tr>
+    </th:block>
+
+    </tbody>
+    </table>
+----
+
+Nous utilisons `th:each="employee : ${employees}"` pour parcourir chaque employé dans la liste `employees`. Ensuite, nous affichons les informations de chaque employé dans les cellules du tableau en utilisant `th:text="${employee.name}"`, `th:text="${employee.prenom}"`, etc.
+
+=== Rajout de l'option pour modifier les employés.
+
+Pour permettre la modification d'un employé, nous devons d'abord récupérer l'ID de l'employé concerné. Pour cela, nous allons ajouter de nouvelles méthodes `GetMapping` et `PostMapping`.
+
+
+
+
+Pour obtenir l'ID de l'employé, nous devons implémenter une méthode `getIdByEmployee` qui utilisera une fonction du repository pour retourner l'employé correspondant à l'ID fourni.
+
+Voici la méthode ``getIdByEmployee`` dans le service ``EmployeeService`` :
+
+
+[source,java]
+----
+ public Optional<Employee> GetIdByEmployee(Long id){
+       return this.employeeRepository.findById(id.toString());
+    }
+----
+
+Nous utilisons ``Optional`` pour gérer le cas où aucun employé n'est trouvé. Nous convertissons l'ID en chaîne de caractères car ``findById`` attend un ID de type ``String``.
+
+Maintenant, nous pouvons implémenter les méthodes ``GetMapping`` et ``PostMapping``.
+
+Le ``GetMapping`` aura besoin de l'ID de l'employé, que nous transmettrons via l'URL en utilisant ``@PathVariable``.
+
+Voici le ``GetMapping`` :
+
+[source,java]
+----
+ @GetMapping("/modifier/{id}")
+    public String GetModifier(@PathVariable("id") Long id, Model model){
+        Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
+
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            model.addAttribute("employee",employee);
+            return "main/modifier";
+        } else {
+            return "redirect:home";
+        }
+
+    }
+----
+
+Nous utilisons la méthode précédente ``getIdByEmployee(id)`` pour obtenir l'employé correspondant à l'ID passé via l'URL grâce à ``@PathVariable("id")``. L'employé est stocké dans ``employeeOptional``, et nous vérifions ensuite s'il est présent et non nul.
+
+Pour le ``PostMapping``, le processus est similaire, mais nous utiliserons également l'ID de l'employé.
+
+[source,java]
+----
+@PostMapping("/modifier/{id}")
+    public String modifier(@PathVariable("id") Long id, @ModelAttribute EmployeeDTO employeeDTO) {
+        Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
+
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            employee.setName(employeeDTO.getNom());
+            employee.setPrenom(employeeDTO.getPrenom());
+            employee.setPoste(employeeDTO.getPoste());
+            employee.setNum(employeeDTO.getNum());
+            employee.setSalaire(employeeDTO.getSalaire());
+
+            employeeservice.modifier(employee);
+
+            return "redirect:/home";
+
+        } else {
+            return "redirect:/home";
+        }
+    }
+----
+Le processus est similaire, mais nous vérifions à nouveau si l'employé est présent, puis nous utilisons la méthode ``modifier`` du service pour mettre à jour les informations de l'employé dans la base de données.
+
+[source,java]
+----
+public void modifier(Employee employee){
+            employeeRepository.save(employee);
+    }
+----
+
+Ensuite, nous devons ajouter un bouton de modification et créer le fichier ``modifier.html`` où nous placerons le formulaire de modification. Le bouton de modification transmettra l'ID à la méthode ``GetMapping``.
+
+
+Voici le bouton de modification :
+
+[source,html]
+----
+<a th:href="@{/modifier/{id}(id=${employee.id})}" class="btn btn-success">Modifier</a>
+----
+
+Dans ``modifier.html``, nous ajouterons le même formulaire que celui utilisé pour l'ajout, mais nous utiliserons ``th:action="@{/modifier/{id}(id=${employee.id})}"`` pour transmettre l'ID de l'employé et ``th:value="${employee.?}"`` pour chaque champ du formulaire (name, poste, etc.).
+
+Voici le formulaire dans ``modifier.html`` :
+
+[source,html]
+----
+<div class="container">
+<h2 class="mt-4 mb-4">Modifier l'employees  </h2>
+
+    <form action="#" th:action="@{/modifier/{id}(id=${employee.id})}" method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" class="form-control" id="nom" name="nom" th:value="${employee.name}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" class="form-control" id="prenom" name="prenom" th:value="${employee.prenom}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="poste">Poste :</label>
+            <input type="text" class="form-control" id="poste" name="poste" th:value="${employee.poste}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="num">Numéro de Telephone :</label>
+            <input type="text" class="form-control" id="num" name="num" th:value="${employee.num}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email :</label>
+            <input type="text" class="form-control" id="email" name="email"th:value="${employee.email}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="salaire">Salaire :</label>
+            <input type="text" class="form-control" id="salaire" name="salaire" th:value="${employee.name}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Modifier</button>
+    </form>
+</div>
+----
+
+
+
+
+

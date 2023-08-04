@@ -24,7 +24,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/home")
-    public String getString(Model model) {
+    public String getHome(Model model) {
         model.addAttribute("employees", employeeRepository.findAll());
         return "main/home";
 
