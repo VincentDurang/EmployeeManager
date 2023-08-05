@@ -32,8 +32,7 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(Long id, String name, String prenom, String poste, String num, String email, String salaire) {
-        this.id = id;
+    public Employee(String name, String prenom, String poste, String num, String email, String salaire) {
         this.name = name;
         this.prenom = prenom;
         this.poste = poste;
@@ -41,6 +40,8 @@ public class Employee {
         this.email = email;
         this.salaire = salaire;
     }
+
+
 
     public Long getId() {
         return id;

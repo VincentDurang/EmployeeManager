@@ -72,6 +72,11 @@
 			<!-- Remplacez la version par la version appropriée, vérifiez la compatibilité -->
 			<version>8.0.30</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.9.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
