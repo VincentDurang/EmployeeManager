@@ -35,13 +35,18 @@ public class EmployeeController {
 
     }
 
+    @GetMapping("/errorstatue")
+    public String getError() {
+        return "main/ErrorStatue";
+    }
+
     @GetMapping("/ajouter")
     public String GetAjout(){
         return "main/ajouter";
     }
 
     @PostMapping("/ajouter")
-    public String ajouter(@ModelAttribute EmployeeDTO employeeDTO) {
+    public String ajouter(@ModelAttribute EmployeeDTO employeeDTO, Model model) {
         Employee employee = new Employee();
         employee.setName(employeeDTO.getNom());
         employee.setPrenom(employeeDTO.getPrenom());
@@ -51,7 +56,8 @@ public class EmployeeController {
         employee.setSalaire(employeeDTO.getSalaire());
 
         if (employeeRepository.existsEmployeeByNameAndAndPrenom(employee.getName(),employee.getPrenom())){
-            return "redirect:/home";
+            model.addAttribute("error","L'employee " + employee.getName() + " est existe déja dans la liste");
+            return "main/ErrorStatue";
         }
 
         employeeservice.ajouter(employee);
@@ -68,13 +74,14 @@ public class EmployeeController {
             model.addAttribute("employee",employee);
             return "main/modifier";
         } else {
-            return "redirect:home";
+            model.addAttribute("error","L'employee n'est pas présent dans la base ");
+            return "main/ErrorStatue";
         }
 
     }
 
     @PostMapping("/modifier/{id}")
-    public String modifier(@PathVariable("id") Long id, @ModelAttribute EmployeeDTO employeeDTO) {
+    public String modifier(@PathVariable("id") Long id, @ModelAttribute EmployeeDTO employeeDTO,Model model) {
         Optional<Employee> employeeOptional = employeeservice.GetIdByEmployee(id);
 
         if (employeeOptional.isPresent()) {
@@ -91,7 +98,8 @@ public class EmployeeController {
             return "redirect:/home";
 
         } else {
-            return "redirect:/home";
+            model.addAttribute("error","L'employee n'est pas présent dans la base ");
+            return "main/ErrorStatue";
         }
     }
 
@@ -108,7 +116,18 @@ public class EmployeeController {
     }
 
     @PostMapping("/upload")
-    public String upload(@RequestParam("file") MultipartFile file){
+    public String upload(@RequestParam("file") MultipartFile file, Model model){
+
+        if (file.isEmpty()){
+            model.addAttribute("error","Aucun fichier choisie");
+            return "main/ErrorStatue";
+        }
+
+        if (!"text/csv".equals(file.getContentType())){
+            model.addAttribute("error","Mauvais format "+ file.getContentType() +", le fichier doit etre en .csv");
+            return "main/ErrorStatue";
+        }
+
         try{
             InputStream inputStream = file.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -129,6 +148,7 @@ public class EmployeeController {
                     .build();
 
             CSVParser csvRecords = new CSVParser(bufferedReader,csvFormat);
+
             for(CSVRecord csvRecord : csvRecords){
                 String name = csvRecord.get("nom");
                 String prenom = csvRecord.get("prenom");
@@ -142,7 +162,8 @@ public class EmployeeController {
 
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            model.addAttribute("error",e);
+            return "main/ErrorStatue";
         }
 
 

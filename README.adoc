@@ -593,6 +593,46 @@ Voici le formulaire dans ``modifier.html`` :
 ----
 
 
+=== Rajout d'option supprimer un employee
+
+Pour supprimer un employee, nous aurons besoins de l'id de l'employee.
+Ainsi, nous allons crée un nouveau GetMapping qui prend l'id en parametre, pour passer l'id @PathVariable est utiliser comme précedement pour modifier.
+Nous appelerons une méthode de Service qui supprimera un employee de l'id fournit.
+
+le GetMapping :
+
+[source,java]
+----
+ @GetMapping("/supp/{id}")
+    public String Getsupp(@PathVariable("id") Long id) {
+        employeeservice.supp(id);
+        return "redirect:/home";
+    }
+----
+
+Pour la méthode supp de employeeservice, nous utiliserons une methode fournit par le repository grace CrudRepository.
+
+Methode de supp dans employeeservice :
+
+[source,java]
+----
+ public void supp(Long id){
+        employeeRepository.deleteById(id.toString());
+    }
+----
+
+Pour finir, nous implémenterons un bouton supprimer dans la liste employee de la meme maniere que pour modifier
+
+Dans home.html :
+
+[source,html]
+----
+ <a th:href="@{/supp/{id}(id=${employee.id})}" class="btn btn-danger">Supprimer</a></td>
+----
+
+
+=== Rajout d'employee via un fichier csv
+
 
 
 
