@@ -321,6 +321,8 @@ Dans ajouter.html, nous allons créer un formulaire pour ajouter un nouvel emplo
 </div>
 ----
 
+image::document/form.png[Formulaire]
+
 Nous avons également ajouté les autres valeurs (prénom, salaire, etc.) à l'entité Employee :
 Faire attention lors de la génération d'id (il est important de choisir la bonne stratégie, dans notre ces strategy = GenerationType.IDENTITY)
 Erreur : Bien choisir la strategy de generation d'id avant la création de la base de donnée, si vous la changer en cours de route il va avoir un conflit entre l'app et la base de données (dans certains cas on peut la changer manuellement.)
@@ -454,13 +456,13 @@ Voici le tableau dans home.html :
     </table>
 ----
 
+image::document/table.png[Liste employee]
+
 Nous utilisons `th:each="employee : ${employees}"` pour parcourir chaque employé dans la liste `employees`. Ensuite, nous affichons les informations de chaque employé dans les cellules du tableau en utilisant `th:text="${employee.name}"`, `th:text="${employee.prenom}"`, etc.
 
 === Rajout de l'option pour modifier les employés.
 
 Pour permettre la modification d'un employé, nous devons d'abord récupérer l'ID de l'employé concerné. Pour cela, nous allons ajouter de nouvelles méthodes `GetMapping` et `PostMapping`.
-
-
 
 
 Pour obtenir l'ID de l'employé, nous devons implémenter une méthode `getIdByEmployee` qui utilisera une fonction du repository pour retourner l'employé correspondant à l'ID fourni.
@@ -546,6 +548,8 @@ Voici le bouton de modification :
 <a th:href="@{/modifier/{id}(id=${employee.id})}" class="btn btn-success">Modifier</a>
 ----
 
+image::document/bouton_modif.png[Bouton modif]
+
 Dans ``modifier.html``, nous ajouterons le même formulaire que celui utilisé pour l'ajout, mais nous utiliserons ``th:action="@{/modifier/{id}(id=${employee.id})}"`` pour transmettre l'ID de l'employé et ``th:value="${employee.?}"`` pour chaque champ du formulaire (name, poste, etc.).
 
 Voici le formulaire dans ``modifier.html`` :
@@ -593,13 +597,11 @@ Voici le formulaire dans ``modifier.html`` :
 ----
 
 
-=== Rajout d'option supprimer un employee
+=== Rajout d'une option pour supprimer un employé
 
-Pour supprimer un employee, nous aurons besoins de l'id de l'employee.
-Ainsi, nous allons crée un nouveau GetMapping qui prend l'id en parametre, pour passer l'id @PathVariable est utiliser comme précedement pour modifier.
-Nous appelerons une méthode de Service qui supprimera un employee de l'id fournit.
+Pour implémenter la fonctionnalité de suppression d'un employé, nous aurons besoin de l'ID de cet employé. Nous allons créer un nouveau `GetMapping` qui prend l'ID en paramètre. Comme précédemment, nous utiliserons `@PathVariable` pour passer l'ID. Nous appellerons ensuite une méthode du service pour supprimer l'employé correspondant à l'ID fourni.
 
-le GetMapping :
+Voici le ``GetMapping`` pour la suppression :
 
 [source,java]
 ----
@@ -610,9 +612,9 @@ le GetMapping :
     }
 ----
 
-Pour la méthode supp de employeeservice, nous utiliserons une methode fournit par le repository grace CrudRepository.
+La méthode ``supp`` dans le service ``EmployeeService`` utilisera une méthode fournie par l'interface ``CrudRepository`` pour supprimer l'employé de la base de données.
 
-Methode de supp dans employeeservice :
+Voici la méthode ``supp`` dans ``EmployeeService`` :
 
 [source,java]
 ----
@@ -621,17 +623,148 @@ Methode de supp dans employeeservice :
     }
 ----
 
-Pour finir, nous implémenterons un bouton supprimer dans la liste employee de la meme maniere que pour modifier
+Pour finaliser, nous devons ajouter un bouton de suppression dans la liste des employés sur la page d'accueil. Nous ferons cela de la même manière que pour le bouton de modification.
 
-Dans home.html :
+Voici comment ajouter le bouton de suppression dans ``home.html`` :
 
 [source,html]
 ----
  <a th:href="@{/supp/{id}(id=${employee.id})}" class="btn btn-danger">Supprimer</a></td>
 ----
 
+image::document/bouton_supp.png[Bouton supprimer]
 
-=== Rajout d'employee via un fichier csv
+=== Rajout d'une option pour ajouter des employés via un fichier CSV
+
+Pour ajouter des employés via un fichier CSV, nous allons implémenter une nouvelle page HTML où l'utilisateur pourra choisir un fichier CSV à charger. Le fichier CSV sera généré à l'aide d'une fonction Python, puis nous créerons une méthode pour traiter le fichier CSV dans notre application.
+
+Tout d'abord, nous allons générer un fichier CSV de test à l'aide d'une fonction en Python. Ce fichier de test contiendra des données fictives sur les employés. Une fois généré, nous pourrons l'utiliser pour tester l'importation via notre application.
+
+Voici comment générer un fichier CSV en Python :
+
+[source,python]
+----
+import csv
+
+# Données à insérer dans le CSV
+donnees = [
+    ["Dupont", "Jean", "Manager", "jean.dupont@example.com", "123456789", 50000],
+    ["Martin", "Marie", "Développeur", "marie.martin@example.com", "987654321", 60000],
+    ["Lefebvre", "Pierre", "Analyste", "pierre.lefebvre@example.com", "456789123", 55000]
+]
+
+# Nom du fichier CSV à créer
+nom_fichier = "donnees_employes.csv"
+
+# Écriture des données dans le fichier CSV
+with open(nom_fichier, mode='w', newline='', encoding='utf-8') as fichier_csv:
+    writer = csv.writer(fichier_csv)
+
+    # Écriture de l'en-tête
+    en_tete = ["nom", "prenom", "poste", "email", "numéro", "salaire"]
+    writer.writerow(en_tete)
+
+    # Écriture des données
+    writer.writerows(donnees)
+
+print("Le fichier CSV a été généré avec succès.")
+----
+
+Ce script Python génère un fichier CSV avec des en-têtes et des données pour chaque employé.
+
+Maintenant, nous allons créer une page HTML (UploadFile.html) qui permettra à l'utilisateur de choisir un fichier CSV à télécharger. Le formulaire HTML soumettra le fichier au contrôleur pour traitement.
+
+Voici le contenu de UploadFile.html :
+
+[source,html]
+----
+<div class="container">
+<h2 class="my-4">File upload</h2>
+
+  <form method="POST" action="/upload" enctype="multipart/form-data" class="bg-light p-4 rounded">
+    <div class="mb-3">
+      <label for="file" class="form-label">Choisir un fichier:</label>
+      <input class="form-control" type="file" name="file" id="file" />
+    </div>
+    <button type="submit" class="btn btn-primary">Validé</button>
+  </form>
+----
+
+image::document/addFileCSV.png[Ajout fichier CSV]
+
+Le formulaire permettra à l'utilisateur de sélectionner un fichier CSV. Lorsque le formulaire est soumis, le fichier sera envoyé au contrôleur pour traitement.
+
+Voici comment implémenter le contrôleur pour gérer le téléchargement et le traitement du fichier CSV :
+
+[source,java]
+----
+ @GetMapping("/uploadFile")
+    public String Getupload(Model model){
+        model.addAttribute("title","Upload File");
+        return "main/UploadFile";
+    }
+
+
+@PostMapping("/upload")
+    public String upload(@RequestParam("file") MultipartFile file, Model model){
+
+        if (file.isEmpty()){
+            model.addAttribute("error","Aucun fichier choisie");
+            return "main/ErrorStatue";
+        }
+
+        if (!"text/csv".equals(file.getContentType())){
+            model.addAttribute("error","Mauvais format "+ file.getContentType() +", le fichier doit etre en .csv");
+            return "main/ErrorStatue";
+        }
+
+        try{
+            InputStream inputStream = file.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+            CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader(
+                            "nom",
+                            "prenom",
+                            "poste",
+                            "email",
+                            "numero",
+                            "salaire"
+                        )
+                    .setIgnoreHeaderCase(true)
+                    .setSkipHeaderRecord(true)
+                    .setTrim(true)
+                    .build();
+
+            CSVParser csvRecords = new CSVParser(bufferedReader,csvFormat);
+
+            for(CSVRecord csvRecord : csvRecords){
+                String name = csvRecord.get("nom");
+                String prenom = csvRecord.get("prenom");
+                String poste = csvRecord.get("poste");
+                String email = csvRecord.get("email");
+                String num = csvRecord.get("numero");
+                String salaire = csvRecord.get("salaire");
+
+                employeeRepository.save(new Employee(name,prenom,poste,num,email,salaire));
+            }
+
+
+        } catch (IOException e) {
+            model.addAttribute("error",e);
+            return "main/ErrorStatue";
+        }
+
+
+        return "redirect:/home";
+    }
+----
+
+Ce contrôleur comporte deux méthodes : ``getUpload`` pour afficher la page d'importation depuis un fichier CSV et ``upload`` pour traiter le fichier CSV soumis. La méthode upload vérifie d'abord que le fichier n'est pas vide et qu'il est au format CSV. Ensuite, elle lit le fichier CSV, extrait les données des employés et les enregistre dans la base de données.
+
+Ainsi, vous avez maintenant la possibilité d'ajouter des employés en important un fichier CSV. Cette fonctionnalité peut être utile pour ajouter rapidement plusieurs employés à la base
+
 
 
 
